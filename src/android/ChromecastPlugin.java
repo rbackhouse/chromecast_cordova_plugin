@@ -48,7 +48,7 @@ import com.google.cast.SessionError;
 import com.google.cast.Logger;
 
 public class ChromecastPlugin extends CordovaPlugin implements MediaRouteAdapter {
-	private final String APP_ID = "Change Me";
+	private final String APP_ID = "ece06762-f097-4ab4-9b82-adb57ed36330";
 	
 	private CastContext castContext = null;
     private CastDevice selectedDevice = null;
@@ -144,7 +144,7 @@ public class ChromecastPlugin extends CordovaPlugin implements MediaRouteAdapter
 			}
 		} else if (action.equals("startStatusListener")) {
 		    statusCallback = callbackContext;
-			callbackContext.sendPluginResult(getStatus());
+			callbackContext.sendPluginResult(getStatus(null));
 			return true;
 		} else {
 			callbackContext.error("Invalid action");
@@ -166,10 +166,16 @@ public class ChromecastPlugin extends CordovaPlugin implements MediaRouteAdapter
 		session.setListener(new ApplicationSession.Listener() {
 			public void onSessionEnded(SessionError sessionError) {
 				System.out.println("Session ended :"+sessionError);
+    			if (statusCallback != null) {
+    				statusCallback.sendPluginResult(getStatus("Session ended : "+ (sessionError == null ? "" : sessionError.toString())));
+            	}
 			}
 
 			public void onSessionStartFailed(SessionError sessionError) {
 				System.out.println("Session start failed :"+sessionError);
+    			if (statusCallback != null) {
+    				statusCallback.sendPluginResult(getStatus("Session start failed : "+sessionError));
+            	}
 			}
 
 			public void onSessionStarted(ApplicationMetadata applicationMetadata) {
@@ -185,14 +191,23 @@ public class ChromecastPlugin extends CordovaPlugin implements MediaRouteAdapter
 	                    cmd.setListener(new MediaProtocolCommand.Listener() {
 	                        public void onCompleted(MediaProtocolCommand cmd) {
 	            				System.out.println("load complete :"+url);
+	                			if (statusCallback != null) {
+	                				statusCallback.sendPluginResult(getStatus("load complete :"+url));
+	                        	}
 	                        }
 	                        public void onCancelled(MediaProtocolCommand cmd) {
 	            				System.out.println("load cancelled :"+url);
+	                			if (statusCallback != null) {
+	                				statusCallback.sendPluginResult(getStatus("load cancelled :"+url));
+	                        	}
 	                        }
 	                    });                	
             		} catch (IOException e) {
         				System.out.println("load exception :"+e.getMessage());
             			e.printStackTrace();
+            			if (statusCallback != null) {
+            				statusCallback.sendPluginResult(getStatus("load exception :"+e.getMessage()));
+                    	}
             		}
                 } else {
     				System.out.println("player state :"+messageStream.getPlayerState());
@@ -226,7 +241,7 @@ public class ChromecastPlugin extends CordovaPlugin implements MediaRouteAdapter
 		}
 	}
 	
-	private PluginResult getStatus() {
+	private PluginResult getStatus(String statusMessage) {
 		JSONObject status = new JSONObject();
 		try {
 			if (messageStream != null) {
@@ -237,6 +252,9 @@ public class ChromecastPlugin extends CordovaPlugin implements MediaRouteAdapter
 				status.put("state", "");
 				status.put("position", 0.0);
 				status.put("duration", 0.0);
+			}
+			if (statusMessage != null) {
+				status.put("statusMessage", statusMessage);
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -250,6 +268,31 @@ public class ChromecastPlugin extends CordovaPlugin implements MediaRouteAdapter
 	}
 
 	public void onUpdateVolume(double volume) {
+	}
+	
+	public void onDestroy() {
+		super.onDestroy();
+		castContext.dispose();
+		castContext = null;
+	}
+
+	public void onPause(boolean multitasking) {
+		super.onPause(multitasking);
+	}
+
+	public void onReset() {
+		super.onReset();
+	}
+
+	public void onResume(boolean multitasking) {
+		super.onResume(multitasking);
+		if (session != null && session.isResumable()) {
+			try {
+				session.resumeSession();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private class MediaRouterCallback extends MediaRouter.Callback {
@@ -289,8 +332,8 @@ public class ChromecastPlugin extends CordovaPlugin implements MediaRouteAdapter
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-        			if (messageStream != null && statusCallback != null) {
-        				statusCallback.sendPluginResult(getStatus());
+        			if (statusCallback != null) {
+        				statusCallback.sendPluginResult(getStatus(null));
                 	}
                     Thread.sleep(1000);
                 } catch (Exception e) {
