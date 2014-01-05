@@ -48,7 +48,7 @@ import com.google.cast.SessionError;
 import com.google.cast.Logger;
 
 public class ChromecastPlugin extends CordovaPlugin implements MediaRouteAdapter {
-	private final String APP_ID = "ece06762-f097-4ab4-9b82-adb57ed36330";
+	private final String APP_ID = "Change Me";
 	
 	private CastContext castContext = null;
     private CastDevice selectedDevice = null;
