@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
+    id="org.potpie.cordova.plugins.chromecast"
+    version="1.0.0">
+
+    <name>ChromecastPlugin</name>
+
+    <engines>
+        <engine name="cordova" version=">=3.2.0" />
+    </engines>
+
+    <js-module src="www/ChromecastPlugin.js" name="ChromecastPlugin">
+        <clobbers target="ChromecastPlugin" />
+    </js-module>
+
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="ChromecastPlugin">
+                <param name="android-package" value="org.potpie.cordova.plugins.chromecast.ChromecastPlugin"/>
+            </feature>
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+        </config-file>
+        
+        <source-file src="src/android/ChromecastPlugin.java" target-dir="src/org/potpie/cordova/plugins/chromecast"/>
+        
+    </platform>
+<!--
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="ChromecastPlugin">
+                <param name="ios-package" value="ChromecastPlugin" />
+            </feature>
+        </config-file>
+
+        <header-file src="src/ios/ChromecastPlugin.h" />
+        <source-file src="src/ios/ChromecastPlugin.m" />
+    </platform>
+-->    
+</plugin>
